@@ -1,0 +1,26 @@
+
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "outDir": "dist/lib",
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true
+  },
+  "include": ["src"],
+  "exclude": [
+    "**/*_test.ts",
+    "**/*_test.tsx"
+  ]
+}
