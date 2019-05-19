@@ -1,10 +1,10 @@
 {
   "name": "react-hook-shared",
   "version": "0.0.1",
-  "main": "dist/lib/index.js",
-  "typings": "dist/types/index.d.ts",
+  "main": "tsdist/lib/index.js",
+  "typings": "tsdist/types/index.d.ts",
   "files": [
-    "dist"
+    "tsdist"
   ],
   "author": "ryym <ryym.64@gmail.com>",
   "repository": {
@@ -16,7 +16,7 @@
     "node": ">= 8.0.0"
   },
   "scripts": {
-    "prebuild": "rm -rf dist",
+    "prebuild": "rm -rf tsdist",
     "build": "tsc",
     "start": "tsc --watch",
     "test": "jest",
