@@ -10,6 +10,10 @@ export const SharedContext = createContext<SharedAPIProvider | null>(null);
 
 export const SharedProvider = ({ children }: { children: any }) => {
   const sharedSpace: SpaceMap = new Map();
+
+  // TODO: Remove this debug code.
+  (window as any)._shared = sharedSpace;
+
   const useShared = makeUseShared(sharedSpace);
   return <SharedContext.Provider value={{ useShared }}>{children}</SharedContext.Provider>;
 };
