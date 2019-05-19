@@ -21,14 +21,19 @@
     "start": "tsc --watch",
     "test": "jest",
     "test:w": "jest --watch",
-    "preversion": "npm run build"
+    "preversion": "npm run build",
+    "example:basic": "npx parcel examples/basic/index.html"
   },
   "dependencies": {},
   "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/preset-react": "^7.0.0",
     "@types/jest": "^24.0.13",
     "@types/react": "^16.8.17",
     "jest": "^24.8.0",
-    "react": "^16.8.6",
+    "parcel": "^1.12.3",
+    "react": "^16.0.0",
+    "react-dom": "^16.8.6",
     "ts-jest": "^24.0.2",
     "typescript": "^3.4.5"
   },
