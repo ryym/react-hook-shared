@@ -13,9 +13,10 @@ export interface Space {
 }
 
 export interface EffectState {
-  listeners: Symbol[];
-  master: Symbol | undefined;
+  deps: any[] | undefined;
   unsubscribe: void | (() => void);
+  shouldUnsubscribe: boolean;
+  listenerCount: number;
 }
 
 export interface SharedAPI {

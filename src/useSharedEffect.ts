@@ -1,44 +1,58 @@
 import { useEffect, EffectCallback } from 'react';
 import { Space } from './types';
 
-export const makeUseSharedEffect = ({ effects }: Space, componentId: Symbol) => {
+type EffectDeps = any[] | undefined;
+
+const shouldFire = (deps: EffectDeps, nextDeps: EffectDeps) => {
+  if (deps == null) {
+    return true;
+  }
+  if (deps.length === 0) {
+    return false;
+  }
+  return deps.some((d, i) => d !== nextDeps![i]);
+};
+
+export const makeUseSharedEffect = ({ effects }: Space) => {
   const useSharedEffect = (idx: number, effect: EffectCallback, deps?: any[]): void => {
     useEffect(() => {
       if (effects[idx] == null) {
         effects[idx] = {
-          listeners: [componentId],
-          master: componentId,
+          deps: undefined,
           unsubscribe: undefined,
+          shouldUnsubscribe: false,
+          listenerCount: 1,
         };
       } else {
-        effects[idx].listeners.push(componentId);
+        effects[idx].listenerCount += 1;
       }
 
       return () => {
-        if (effects[idx].listeners.length === 0) {
-          throw new Error('[react-hook-shared] No effect listeners. Something is wrong.');
+        effects[idx].listenerCount -= 1;
+        if (effects[idx].listenerCount === 0) {
+          effects[idx].shouldUnsubscribe = true;
         }
-        effects[idx].listeners = effects[idx].listeners.filter(c => c !== componentId);
-        effects[idx].master = effects[idx].listeners[0];
       };
     }, []);
 
     useEffect(() => {
-      if (effects[idx].master === componentId) {
+      if (shouldFire(effects[idx].deps, deps)) {
         effects[idx].unsubscribe = effect();
+        effects[idx].shouldUnsubscribe = true;
+      } else {
+        effects[idx].shouldUnsubscribe = false;
       }
+      effects[idx].deps = deps;
       return () => {
-        const effectState = effects[idx];
-        if (effectState.master === componentId) {
-          effectState.unsubscribe && effectState.unsubscribe();
-        }
-        // All listeners are unmounted.
-        if (effectState.master == null) {
-          effectState.unsubscribe && effectState.unsubscribe();
-          delete effects[idx];
+        if (effects[idx].shouldUnsubscribe) {
+          const { unsubscribe } = effects[idx];
+          unsubscribe && unsubscribe();
+          if (effects[idx].listenerCount === 0) {
+            delete effects[idx];
+          }
         }
       };
-    }, deps);
+    });
   };
 
   return useSharedEffect;
