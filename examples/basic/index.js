@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import { SharedProvider } from '../..';
 import { CounterExample } from './counter';
 import { AuthExample } from './auth';
+import { MessagesExample } from './messages';
 
 const App = () => {
   return (
@@ -19,11 +20,15 @@ const App = () => {
           <li>
             <Link to="/auth">Auth Example</Link>
           </li>
+          <li>
+            <Link to="/messages">Messages Example</Link>
+          </li>
         </ul>
       </nav>
       <div>
         <Route path="/counter" exact component={CounterExample} />
         <Route path="/auth" exact component={AuthExample} />
+        <Route path="/messages" exact component={MessagesExample} />
       </div>
     </Router>
   );
