@@ -14,39 +14,42 @@ const shouldFire = (deps: EffectDeps, nextDeps: EffectDeps) => {
 };
 
 export const makeUseSharedEffect = ({ effects }: Space) => {
-  const useSharedEffect = (idx: number, effect: EffectCallback, deps?: any[]): void => {
-    useEffect(() => {
-      if (effects[idx] == null) {
-        effects[idx] = {
-          deps: undefined,
-          unsubscribe: undefined,
-          shouldUnsubscribe: false,
-          listenerCount: 1,
-        };
-      } else {
-        effects[idx].listenerCount += 1;
-      }
+  return (incrIdx: () => number) => {
+    const useSharedEffect = (effect: EffectCallback, deps?: any[]): void => {
+      const idx = incrIdx();
+      useEffect(() => {
+        if (effects[idx] == null) {
+          effects[idx] = {
+            deps: undefined,
+            unsubscribe: undefined,
+            shouldUnsubscribe: false,
+            listenerCount: 1,
+          };
+        } else {
+          effects[idx].listenerCount += 1;
+        }
 
-      return () => {
-        effects[idx].listenerCount -= 1;
-        if (effects[idx].listenerCount === 0) {
+        return () => {
+          effects[idx].listenerCount -= 1;
+          if (effects[idx].listenerCount === 0) {
+            const { unsubscribe } = effects[idx];
+            unsubscribe && unsubscribe();
+            delete effects[idx];
+          }
+        };
+      }, []);
+
+      useEffect(() => {
+        // FIXME: Reinvention of the wheel...
+        if (shouldFire(effects[idx].deps, deps)) {
           const { unsubscribe } = effects[idx];
           unsubscribe && unsubscribe();
-          delete effects[idx];
+          effects[idx].unsubscribe = effect();
         }
-      };
-    }, []);
+        effects[idx].deps = deps;
+      });
+    };
 
-    useEffect(() => {
-      // FIXME: Reinvention of the wheel...
-      if (shouldFire(effects[idx].deps, deps)) {
-        const { unsubscribe } = effects[idx];
-        unsubscribe && unsubscribe();
-        effects[idx].unsubscribe = effect();
-      }
-      effects[idx].deps = deps;
-    });
+    return useSharedEffect;
   };
-
-  return useSharedEffect;
 };

@@ -2,29 +2,32 @@ import { EffectCallback, useEffect } from 'react';
 import { Space } from './types';
 
 export const makeUseSharedEffectPer = ({ multiEffects }: Space) => {
-  // It would be nice if it can take an additional dependencies.
-  const useSharedEffectPer = (idx: number, key: string, effect: EffectCallback) => {
-    if (multiEffects[idx] == null) {
-      multiEffects[idx] = {};
-    }
-    const subscriptions = multiEffects[idx];
-
-    useEffect(() => {
-      if (subscriptions[key] == null) {
-        const unsubscribe = effect();
-        subscriptions[key] = { unsubscribe, listenerCount: 1 };
-      } else {
-        subscriptions[key].listenerCount += 1;
+  return (incrIdx: () => number) => {
+    // It would be nice if it can take an additional dependencies.
+    const useSharedEffectPer = (key: string, effect: EffectCallback) => {
+      const idx = incrIdx();
+      if (multiEffects[idx] == null) {
+        multiEffects[idx] = {};
       }
-      return () => {
-        subscriptions[key].listenerCount -= 1;
-        if (subscriptions[key].listenerCount === 0) {
-          const { unsubscribe } = subscriptions[key];
-          unsubscribe && unsubscribe();
-          delete subscriptions[key];
+      const subscriptions = multiEffects[idx];
+
+      useEffect(() => {
+        if (subscriptions[key] == null) {
+          const unsubscribe = effect();
+          subscriptions[key] = { unsubscribe, listenerCount: 1 };
+        } else {
+          subscriptions[key].listenerCount += 1;
         }
-      };
-    }, [key]);
+        return () => {
+          subscriptions[key].listenerCount -= 1;
+          if (subscriptions[key].listenerCount === 0) {
+            const { unsubscribe } = subscriptions[key];
+            unsubscribe && unsubscribe();
+            delete subscriptions[key];
+          }
+        };
+      }, [key]);
+    };
+    return useSharedEffectPer;
   };
-  return useSharedEffectPer;
 };

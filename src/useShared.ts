@@ -1,5 +1,5 @@
-import { useRef, useEffect, EffectCallback } from 'react';
-import { SpaceMap, SharedAPI, Space, UseReducer } from './types';
+import { useRef, useEffect } from 'react';
+import { SpaceMap, SharedAPI, Space } from './types';
 import { makeUseSharedState } from './useSharedState';
 import { makeUseSharedEffect } from './useSharedEffect';
 import { makeUseSharedEffectPer } from './useSharedEffectPer';
@@ -41,35 +41,23 @@ export const makeUseShared = (sharedSpace: SpaceMap) => {
 };
 
 const makeSharedHooks = (space: Space, componentId: Symbol): SharedAPI => {
-  const useSharedState = makeUseSharedState(space, componentId);
-  let stateIdx = 0;
-  const useState = <S>(defaultValue: S) => {
-    const state = useSharedState(stateIdx, defaultValue);
-    stateIdx += 1;
-    return state;
-  };
+  const useSharedState = makeUseSharedState(space)(makeIndexer(), componentId);
 
-  const useSharedEffect = makeUseSharedEffect(space);
-  let effectIdx = 0;
-  const useEffect = (effect: EffectCallback, deps?: any[]): void => {
-    useSharedEffect(effectIdx, effect, deps);
-    effectIdx += 1;
-  };
+  const useSharedEffect = makeUseSharedEffect(space)(makeIndexer());
 
-  const useSharedEffectPer = makeUseSharedEffectPer(space);
-  let effectPerIdx = 0;
-  const useEffectPer = (key: string, effect: EffectCallback): void => {
-    useSharedEffectPer(effectPerIdx, key, effect);
-    effectPerIdx += 1;
-  };
+  const useSharedEffectPer = makeUseSharedEffectPer(space)(makeIndexer());
 
-  const useSharedReducer = makeUseSharedReducer(space, componentId);
-  let reducerIdx = 0;
-  const useReducer: UseReducer = (reducer, conf) => {
-    const result = useSharedReducer(reducerIdx, reducer, conf);
-    reducerIdx += 1;
-    return result;
-  };
+  const useSharedReducer = makeUseSharedReducer(space)(makeIndexer(), componentId);
 
-  return { useState, useEffect, useEffectPer, useReducer };
+  return {
+    useState: useSharedState,
+    useEffect: useSharedEffect,
+    useEffectPer: useSharedEffectPer,
+    useReducer: useSharedReducer,
+  };
+};
+
+const makeIndexer = () => {
+  let idx = 0;
+  return () => idx++;
 };
