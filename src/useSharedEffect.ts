@@ -30,28 +30,21 @@ export const makeUseSharedEffect = ({ effects }: Space) => {
       return () => {
         effects[idx].listenerCount -= 1;
         if (effects[idx].listenerCount === 0) {
-          effects[idx].shouldUnsubscribe = true;
+          const { unsubscribe } = effects[idx];
+          unsubscribe && unsubscribe();
+          delete effects[idx];
         }
       };
     }, []);
 
     useEffect(() => {
+      // FIXME: Reinvention of the wheel...
       if (shouldFire(effects[idx].deps, deps)) {
+        const { unsubscribe } = effects[idx];
+        unsubscribe && unsubscribe();
         effects[idx].unsubscribe = effect();
-        effects[idx].shouldUnsubscribe = true;
-      } else {
-        effects[idx].shouldUnsubscribe = false;
       }
       effects[idx].deps = deps;
-      return () => {
-        if (effects[idx].shouldUnsubscribe) {
-          const { unsubscribe } = effects[idx];
-          unsubscribe && unsubscribe();
-          if (effects[idx].listenerCount === 0) {
-            delete effects[idx];
-          }
-        }
-      };
     });
   };
 
