@@ -2,7 +2,7 @@ import { EffectCallback, Reducer, Dispatch } from 'react';
 
 export type StateUpdater = (newValue: any) => void;
 
-export type SpaceMap = Map<Symbol, Space>;
+export type SpaceMap = Map<Symbol, [SharedAPIMaker, Space]>;
 
 export interface Space {
   states: any[];
@@ -13,6 +13,8 @@ export interface Space {
   multiEffects: { [idx: number]: MultiEffectState };
   reducers: ReducerState<any, any, any>[];
 }
+
+export type SharedAPIMaker = (componentId: Symbol) => SharedAPI;
 
 export interface EffectState {
   deps: any[] | undefined;

@@ -7,17 +7,19 @@ import { makeUseSharedReducer } from './useSharedReducer';
 
 export const makeUseShared = (sharedSpace: SpaceMap) => {
   const useShared = (spaceId: Symbol, componentName?: string): SharedAPI => {
-    let space = sharedSpace.get(spaceId);
-    if (!space) {
-      space = {
+    let spaceValue = sharedSpace.get(spaceId);
+    if (spaceValue == null) {
+      const space = {
         states: [],
         listeners: {},
         effects: [],
         multiEffects: [],
         reducers: [],
       };
-      sharedSpace.set(spaceId, space);
+      spaceValue = [makeApiMaker(space), space];
+      sharedSpace.set(spaceId, spaceValue);
     }
+    const [apiMaker, space] = spaceValue;
 
     // Currently TypeScript does not allow Symbols for index type.
     // https://github.com/microsoft/TypeScript/issues/1863
@@ -34,26 +36,26 @@ export const makeUseShared = (sharedSpace: SpaceMap) => {
       };
     }, []);
 
-    return makeSharedHooks(space, componentId);
+    return apiMaker(componentId);
   };
 
   return useShared;
 };
 
-const makeSharedHooks = (space: Space, componentId: Symbol): SharedAPI => {
-  const useSharedState = makeUseSharedState(space)(makeIndexer(), componentId);
-
-  const useSharedEffect = makeUseSharedEffect(space)(makeIndexer());
-
-  const useSharedEffectPer = makeUseSharedEffectPer(space)(makeIndexer());
-
-  const useSharedReducer = makeUseSharedReducer(space)(makeIndexer(), componentId);
-
-  return {
-    useState: useSharedState,
-    useEffect: useSharedEffect,
-    useEffectPer: useSharedEffectPer,
-    useReducer: useSharedReducer,
+const makeApiMaker = (space: Space) => {
+  const apis = {
+    useSharedState: makeUseSharedState(space),
+    useSharedReducer: makeUseSharedReducer(space),
+    useSharedEffect: makeUseSharedEffect(space),
+    useSharedEffectPer: makeUseSharedEffectPer(space),
+  };
+  return (componentId: Symbol): SharedAPI => {
+    return {
+      useState: apis.useSharedState(makeIndexer(), componentId),
+      useReducer: apis.useSharedReducer(makeIndexer(), componentId),
+      useEffect: apis.useSharedEffect(makeIndexer()),
+      useEffectPer: apis.useSharedEffectPer(makeIndexer()),
+    };
   };
 };
 
