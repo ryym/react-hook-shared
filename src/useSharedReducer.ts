@@ -59,12 +59,18 @@ export const makeUseSharedReducer = (space: Space, componentIdSymbol: Symbol) =>
           },
         },
       };
-    } else if (space.reducers[idx].listeners[componentId] == null) {
-      space.reducers[idx].listeners[componentId] = {
-        mapState,
-        setMappedState,
-        mappedState: initialMappedState.current,
-      };
+    } else {
+      const { listeners } = space.reducers[idx];
+      if (listeners[componentId] == null) {
+        listeners[componentId] = {
+          mapState,
+          setMappedState,
+          mappedState: initialMappedState.current,
+        };
+      } else {
+        listeners[componentId].mapState = mapState;
+        listeners[componentId].setMappedState = setMappedState;
+      }
     }
 
     useEffect(() => {
