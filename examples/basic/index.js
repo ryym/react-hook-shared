@@ -5,6 +5,7 @@ import { SharedProvider } from '../..';
 import { CounterExample } from './counter';
 import { AuthExample } from './auth';
 import { MessagesExample } from './messages';
+import { SignalsExample } from './signals';
 
 const App = () => {
   return (
@@ -23,12 +24,16 @@ const App = () => {
           <li>
             <Link to="/messages">Messages Example</Link>
           </li>
+          <li>
+            <Link to="/signals">Signals Example</Link>
+          </li>
         </ul>
       </nav>
       <div>
         <Route path="/counter" exact component={CounterExample} />
         <Route path="/auth" exact component={AuthExample} />
         <Route path="/messages" exact component={MessagesExample} />
+        <Route path="/signals" exact component={SignalsExample} />
       </div>
     </Router>
   );
