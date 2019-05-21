@@ -10,6 +10,7 @@ export interface Space {
     [componentId: string]: StateUpdater[];
   };
   effects: { [idx: number]: EffectState };
+  multiEffects: { [idx: number]: MultiEffectState };
   reducers: ReducerState<any, any, any>[];
 }
 
@@ -18,6 +19,13 @@ export interface EffectState {
   unsubscribe: void | (() => void);
   shouldUnsubscribe: boolean;
   listenerCount: number;
+}
+
+export interface MultiEffectState {
+  [key: string]: {
+    unsubscribe: void | (() => void);
+    listenerCount: number;
+  };
 }
 
 export interface ReducerState<S, MS, A> {
@@ -35,6 +43,7 @@ export interface ReducerState<S, MS, A> {
 export interface SharedAPI {
   readonly useState: <S>(defaultValue: S) => readonly [S, (newValue: S) => void];
   readonly useEffect: (effect: EffectCallback, deps?: any[]) => void;
+  readonly useEffectPer: (key: string, effect: EffectCallback) => void;
   readonly useReducer: UseReducer;
 }
 

@@ -2,13 +2,20 @@ import { useRef, useEffect, EffectCallback } from 'react';
 import { SpaceMap, SharedAPI, Space, UseReducer } from './types';
 import { makeUseSharedState } from './useSharedState';
 import { makeUseSharedEffect } from './useSharedEffect';
+import { makeUseSharedEffectPer } from './useSharedEffectPer';
 import { makeUseSharedReducer } from './useSharedReducer';
 
 export const makeUseShared = (sharedSpace: SpaceMap) => {
   const useShared = (spaceId: Symbol, componentName?: string): SharedAPI => {
     let space = sharedSpace.get(spaceId);
     if (!space) {
-      space = { states: [], listeners: {}, effects: [], reducers: [] };
+      space = {
+        states: [],
+        listeners: {},
+        effects: [],
+        multiEffects: [],
+        reducers: [],
+      };
       sharedSpace.set(spaceId, space);
     }
 
@@ -49,6 +56,13 @@ const makeSharedHooks = (space: Space, componentId: Symbol): SharedAPI => {
     effectIdx += 1;
   };
 
+  const useSharedEffectPer = makeUseSharedEffectPer(space);
+  let effectPerIdx = 0;
+  const useEffectPer = (key: string, effect: EffectCallback): void => {
+    useSharedEffectPer(effectPerIdx, key, effect);
+    effectPerIdx += 1;
+  };
+
   const useSharedReducer = makeUseSharedReducer(space, componentId);
   let reducerIdx = 0;
   const useReducer: UseReducer = (reducer, conf) => {
@@ -57,5 +71,5 @@ const makeSharedHooks = (space: Space, componentId: Symbol): SharedAPI => {
     return result;
   };
 
-  return { useState, useEffect, useReducer };
+  return { useState, useEffect, useEffectPer, useReducer };
 };
