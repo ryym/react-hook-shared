@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { makeSharedApi } from './makeSharedApi';
 import { SharedContext } from './SharedProvider';
 
@@ -14,6 +14,7 @@ export const useShared = (spaceId: Symbol, componentName: string) => {
   let space = sharedSpace.get(spaceId);
   if (space == null) {
     space = {
+      listenerCount: 0,
       state: {
         states: [],
         listeners: {},
@@ -30,6 +31,16 @@ export const useShared = (spaceId: Symbol, componentName: string) => {
     };
     sharedSpace.set(spaceId, space);
   }
+
+  useEffect(() => {
+    space!.listenerCount += 1;
+    return () => {
+      space!.listenerCount -= 1;
+      if (space!.listenerCount === 0) {
+        sharedSpace.delete(spaceId);
+      }
+    };
+  }, []);
 
   const api = makeSharedApi(space, componentName);
   return api;

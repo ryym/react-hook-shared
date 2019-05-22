@@ -5,6 +5,7 @@ export type StateUpdater = (newValue: any) => void;
 export type SpaceMap = Map<Symbol, Space>;
 
 export interface Space {
+  listenerCount: number;
   state: StateSpace;
   reducer: ReducerSpace;
   effect: EffectSpace;
