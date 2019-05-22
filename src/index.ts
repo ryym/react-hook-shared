@@ -22,7 +22,10 @@ export const useShared = (spaceId: Symbol, componentName: string) => {
         states: [],
         listeners: {},
       },
-      effects: [],
+      effect: {
+        listenerCount: 0,
+        effects: [],
+      },
       multiEffects: [],
     };
     sharedSpace.set(spaceId, space);

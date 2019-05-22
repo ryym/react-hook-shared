@@ -1,5 +1,5 @@
 import { useEffect, EffectCallback } from 'react';
-import { Space } from './types';
+import { EffectSpace } from './types';
 
 type EffectDeps = any[] | undefined;
 
@@ -13,39 +13,35 @@ const shouldFire = (deps: EffectDeps, nextDeps: EffectDeps) => {
   return deps.some((d, i) => d !== nextDeps![i]);
 };
 
-export const makeUseSharedEffect = ({ effects }: Space, incrIdx: () => number) => {
+export const makeUseSharedEffect = (space: EffectSpace, incrIdx: () => number) => {
   return function useSharedEffect(effect: EffectCallback, deps?: any[]): void {
     const idx = incrIdx();
     useEffect(() => {
-      if (effects[idx] == null) {
-        effects[idx] = {
+      space.listenerCount += 1;
+      if (space.effects.length <= idx) {
+        space.effects[idx] = {
           deps: undefined,
           unsubscribe: undefined,
-          shouldUnsubscribe: false,
-          listenerCount: 1,
         };
-      } else {
-        effects[idx].listenerCount += 1;
       }
 
       return () => {
-        effects[idx].listenerCount -= 1;
-        if (effects[idx].listenerCount === 0) {
-          const { unsubscribe } = effects[idx];
-          unsubscribe && unsubscribe();
-          delete effects[idx];
+        space.listenerCount -= 1;
+        if (space.listenerCount === 0) {
+          space.effects.forEach(ef => ef.unsubscribe && ef.unsubscribe());
+          space.effects = [];
         }
       };
     }, []);
 
     useEffect(() => {
+      const ef = space.effects[idx];
       // FIXME: Reinvention of the wheel...
-      if (shouldFire(effects[idx].deps, deps)) {
-        const { unsubscribe } = effects[idx];
-        unsubscribe && unsubscribe();
-        effects[idx].unsubscribe = effect();
+      if (shouldFire(ef.deps, deps)) {
+        ef.unsubscribe && ef.unsubscribe();
+        ef.unsubscribe = effect();
       }
-      effects[idx].deps = deps;
+      ef.deps = deps;
     });
   };
 };

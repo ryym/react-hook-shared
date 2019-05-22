@@ -13,7 +13,7 @@ export const makeSharedApi = (space: Space, componentName?: string): SharedAPI =
   return {
     useState: makeUseSharedState(space.state, makeIndexer(), componentId),
     useReducer: makeUseSharedReducer(space.reducer, makeIndexer(), componentId),
-    useEffect: makeUseSharedEffect(space, makeIndexer()),
+    useEffect: makeUseSharedEffect(space.effect, makeIndexer()),
     useEffectPer: makeUseSharedEffectPer(space, makeIndexer()),
   };
 };
