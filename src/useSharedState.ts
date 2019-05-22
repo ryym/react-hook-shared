@@ -1,7 +1,21 @@
-import { useState } from 'react';
-import { Space } from './types';
+import { useState, useEffect } from 'react';
+import { StateSpace } from './types';
 
-export const makeUseSharedState = (space: Space, incrIdx: () => number, componentId: Symbol) => {
+export const makeUseSharedState = (
+  space: StateSpace,
+  incrIdx: () => number,
+  componentId: any /* Symbol */
+) => {
+  space.listeners[componentId] = [];
+  useEffect(() => {
+    return () => {
+      delete space.listeners[componentId];
+      if (Object.keys(space.listeners).length === 0) {
+        space.states = [];
+      }
+    };
+  }, []);
+
   return function useSharedState<S>(defaultValue: S) {
     const idx = incrIdx();
     if (idx < space.states.length) {
@@ -11,7 +25,7 @@ export const makeUseSharedState = (space: Space, incrIdx: () => number, componen
 
     const [value, update] = useState(defaultValue);
     space.states[idx] = value;
-    space.listeners[componentId as any][idx] = update;
+    space.listeners[componentId][idx] = update;
 
     const updateState = (newValue: S) => {
       space.states[idx] = newValue;

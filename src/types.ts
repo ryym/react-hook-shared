@@ -5,13 +5,17 @@ export type StateUpdater = (newValue: any) => void;
 export type SpaceMap = Map<Symbol, Space>;
 
 export interface Space {
+  state: StateSpace;
+  effects: { [idx: number]: EffectState };
+  multiEffects: { [idx: number]: MultiEffectState };
+  reducers: ReducerState<any, any, any>[];
+}
+
+export interface StateSpace {
   states: any[];
   listeners: {
     [componentId: string]: StateUpdater[];
   };
-  effects: { [idx: number]: EffectState };
-  multiEffects: { [idx: number]: MultiEffectState };
-  reducers: ReducerState<any, any, any>[];
 }
 
 export interface EffectState {

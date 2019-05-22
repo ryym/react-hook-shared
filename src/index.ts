@@ -14,8 +14,10 @@ export const useShared = (spaceId: Symbol, componentName: string) => {
   let space = sharedSpace.get(spaceId);
   if (space == null) {
     space = {
-      states: [],
-      listeners: {},
+      state: {
+        states: [],
+        listeners: {},
+      },
       effects: [],
       multiEffects: [],
       reducers: [],

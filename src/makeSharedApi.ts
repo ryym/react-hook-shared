@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { SharedAPI, Space } from './types';
 import { makeUseSharedState } from './useSharedState';
 import { makeUseSharedEffect } from './useSharedEffect';
@@ -10,19 +10,8 @@ export const makeSharedApi = (space: Space, componentName?: string): SharedAPI =
   // https://github.com/microsoft/TypeScript/issues/1863
   const componentId = <any>useRef(Symbol(componentName)).current;
 
-  space.listeners[componentId] = [];
-  useEffect(() => {
-    return () => {
-      delete space!.listeners[componentId];
-      if (Object.keys(space!.listeners).length === 0) {
-        space!.states = [];
-        // TODO: Should delete space itself from sharedSpace?
-      }
-    };
-  }, []);
-
   return {
-    useState: makeUseSharedState(space, makeIndexer(), componentId),
+    useState: makeUseSharedState(space.state, makeIndexer(), componentId),
     useReducer: makeUseSharedReducer(space, makeIndexer(), componentId),
     useEffect: makeUseSharedEffect(space, makeIndexer()),
     useEffectPer: makeUseSharedEffectPer(space, makeIndexer()),
