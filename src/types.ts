@@ -6,9 +6,9 @@ export type SpaceMap = Map<Symbol, Space>;
 
 export interface Space {
   state: StateSpace;
+  reducer: ReducerSpace;
   effects: { [idx: number]: EffectState };
   multiEffects: { [idx: number]: MultiEffectState };
-  reducers: ReducerState<any, any, any>[];
 }
 
 export interface StateSpace {
@@ -16,6 +16,24 @@ export interface StateSpace {
   listeners: {
     [componentId: string]: StateUpdater[];
   };
+}
+
+export interface ReducerSpace {
+  states: ReducerState<any, any>[];
+  listeners: {
+    [componentId: string]: ReducerMapping<any, any>[];
+  };
+}
+
+export interface ReducerState<S, A> {
+  dispatch: Dispatch<A>;
+  state: S;
+}
+
+export interface ReducerMapping<S, MS> {
+  mapState: (state: S) => MS;
+  mappedState: MS;
+  setMappedState: (next: MS) => void;
 }
 
 export interface EffectState {
@@ -29,18 +47,6 @@ export interface MultiEffectState {
   [key: string]: {
     unsubscribe: void | (() => void);
     listenerCount: number;
-  };
-}
-
-export interface ReducerState<S, MS, A> {
-  dispatch: Dispatch<A>;
-  state: S;
-  listeners: {
-    [componentId: string]: {
-      mapState: (state: S) => MS;
-      mappedState: MS;
-      setMappedState: (next: MS) => void;
-    };
   };
 }
 

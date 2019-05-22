@@ -1,4 +1,4 @@
-import { Space, ReducerConfig } from './types';
+import { ReducerConfig, ReducerSpace } from './types';
 import { useRef, useState, useEffect, Reducer, Dispatch } from 'react';
 
 const UNINITIALIZED = Symbol();
@@ -18,16 +18,26 @@ const shallowEqual = (a: any, b: any): boolean => {
 };
 
 export const makeUseSharedReducer = (
-  space: Space,
+  space: ReducerSpace,
   incrIdx: () => number,
   componentId: any /* Symbol */
 ) => {
+  space.listeners[componentId] = [];
+  useEffect(() => {
+    return () => {
+      delete space.listeners[componentId];
+      if (Object.keys(space.listeners).length === 0) {
+        space.states = [];
+      }
+    };
+  }, []);
+
   return function useSharedReducer<S, A, MS>(
     reducer: Reducer<S, A>,
     { initState, mapState }: ReducerConfig<S, MS>
   ): [S, MS, Dispatch<A>] {
     const idx = incrIdx();
-    const initialState = space.reducers[idx] == null ? initState() : space.reducers[idx].state;
+    const initialState = space.states.length <= idx ? initState() : space.states[idx].state;
 
     const initialMappedState = useRef<MS | typeof UNINITIALIZED>(UNINITIALIZED);
     if (initialMappedState.current === UNINITIALIZED) {
@@ -36,52 +46,29 @@ export const makeUseSharedReducer = (
 
     const [mappedState, setMappedState] = useState(initialMappedState.current as MS);
 
-    if (space.reducers[idx] == null) {
-      const dispatch = (action: A) => {
-        const nextState = reducer(space.reducers[idx].state, action);
-        space.reducers[idx].state = nextState;
-        Object.getOwnPropertySymbols(space.reducers[idx].listeners).forEach(componentId => {
-          const l = space.reducers[idx].listeners[componentId as any];
-          const nextMappedState = l.mapState(nextState);
-          if (!shallowEqual(l.mappedState, nextMappedState)) {
-            l.mappedState = nextMappedState;
-            l.setMappedState(nextMappedState);
-          }
-        });
-      };
-      space.reducers[idx] = {
-        dispatch,
-        state: initialState,
-        listeners: {
-          [componentId]: {
-            mapState,
-            setMappedState,
-            mappedState: initialMappedState.current,
-          },
-        },
-      };
-    } else {
-      const { listeners } = space.reducers[idx];
-      if (listeners[componentId] == null) {
-        listeners[componentId] = {
-          mapState,
-          setMappedState,
-          mappedState: initialMappedState.current,
-        };
-      } else {
-        listeners[componentId].mapState = mapState;
-        listeners[componentId].setMappedState = setMappedState;
-      }
+    if (space.states.length <= idx) {
+      const dispatch = makeDispatch(idx, space, reducer);
+      space.states[idx] = { dispatch, state: initialState };
     }
 
-    useEffect(() => {
-      return () => {
-        delete space.reducers[idx].listeners[componentId];
-        // TODO: Clean up.
-        // Probably we don't need to hold listeners for each reducer.
-      };
-    }, []);
+    space.listeners[componentId][idx] = { mapState, mappedState, setMappedState };
 
-    return [space.reducers[idx].state, mappedState, space.reducers[idx].dispatch];
+    const { state, dispatch } = space.states[idx];
+    return [state, mappedState, dispatch];
+  };
+};
+
+const makeDispatch = <A>(idx: number, space: ReducerSpace, reducer: Reducer<any, A>) => {
+  return function dispatch(action: A) {
+    const nextState = reducer(space.states[idx].state, action);
+    space.states[idx].state = nextState;
+    Object.getOwnPropertySymbols(space.listeners).forEach(componentId => {
+      const l = space.listeners[componentId as any][idx];
+      const nextMappedState = l.mapState(nextState);
+      if (!shallowEqual(l.mappedState, nextMappedState)) {
+        l.mappedState = nextMappedState;
+        l.setMappedState(nextMappedState);
+      }
+    });
   };
 };
