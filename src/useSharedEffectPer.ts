@@ -1,18 +1,14 @@
 import { EffectCallback, useEffect } from 'react';
-import { Space } from './types';
+import { MultiEffectSpace } from './types';
 
-export const makeUseSharedEffectPer = ({ multiEffects }: Space, incrIdx: () => number) => {
+export const makeUseSharedEffectPer = (spaces: MultiEffectSpace[], incrIdx: () => number) => {
   // It would be nice if it can take an additional dependencies.
-  // でもまあ useSharedEffect と同様で、コンポーネントごとに deps が違い、
-  // 特定のコンポーネントの deps だけ変わった場合の対応方法が見えない。
-  // dummy component 案であれば、全コンポーネントが1つの useEffect を使うので
-  // 一応は大丈夫？ (特定のコンポーネントだけが変わっても全コンポーネントに反映される)
   return function useSharedEffectPer(key: string, effect: EffectCallback) {
     const idx = incrIdx();
-    if (multiEffects[idx] == null) {
-      multiEffects[idx] = {};
+    if (spaces.length <= idx) {
+      spaces.push({});
     }
-    const subscriptions = multiEffects[idx];
+    const subscriptions = spaces[idx];
 
     useEffect(() => {
       if (subscriptions[key] == null) {

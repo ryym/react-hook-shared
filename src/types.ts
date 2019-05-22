@@ -8,7 +8,7 @@ export interface Space {
   state: StateSpace;
   reducer: ReducerSpace;
   effect: EffectSpace;
-  multiEffects: { [idx: number]: MultiEffectState };
+  multiEffects: MultiEffectSpace[];
 }
 
 export interface StateSpace {
@@ -46,7 +46,7 @@ export interface EffectState {
   unsubscribe: void | (() => void);
 }
 
-export interface MultiEffectState {
+export interface MultiEffectSpace {
   [key: string]: {
     unsubscribe: void | (() => void);
     listenerCount: number;
