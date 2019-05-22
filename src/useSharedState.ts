@@ -3,7 +3,7 @@ import { Space } from './types';
 
 export const makeUseSharedState = (space: Space) => {
   return (incrIdx: () => number, componentId: Symbol) => {
-    const useSharedState = <S>(defaultValue: S) => {
+    return function useSharedState<S>(defaultValue: S) {
       const idx = incrIdx();
       if (idx < space.states.length) {
         // XXX: Isn't there a case that a initial value should be used rather then the existing one?
@@ -23,6 +23,5 @@ export const makeUseSharedState = (space: Space) => {
 
       return [value, updateState] as const;
     };
-    return useSharedState;
   };
 };

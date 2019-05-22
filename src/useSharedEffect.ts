@@ -15,7 +15,7 @@ const shouldFire = (deps: EffectDeps, nextDeps: EffectDeps) => {
 
 export const makeUseSharedEffect = ({ effects }: Space) => {
   return (incrIdx: () => number) => {
-    const useSharedEffect = (effect: EffectCallback, deps?: any[]): void => {
+    return function useSharedEffect(effect: EffectCallback, deps?: any[]): void {
       const idx = incrIdx();
       useEffect(() => {
         if (effects[idx] == null) {
@@ -49,7 +49,5 @@ export const makeUseSharedEffect = ({ effects }: Space) => {
         effects[idx].deps = deps;
       });
     };
-
-    return useSharedEffect;
   };
 };

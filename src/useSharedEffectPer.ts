@@ -4,7 +4,7 @@ import { Space } from './types';
 export const makeUseSharedEffectPer = ({ multiEffects }: Space) => {
   return (incrIdx: () => number) => {
     // It would be nice if it can take an additional dependencies.
-    const useSharedEffectPer = (key: string, effect: EffectCallback) => {
+    return function useSharedEffectPer(key: string, effect: EffectCallback) {
       const idx = incrIdx();
       if (multiEffects[idx] == null) {
         multiEffects[idx] = {};
@@ -28,6 +28,5 @@ export const makeUseSharedEffectPer = ({ multiEffects }: Space) => {
         };
       }, [key]);
     };
-    return useSharedEffectPer;
   };
 };

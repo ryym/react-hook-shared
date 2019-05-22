@@ -19,10 +19,10 @@ const shallowEqual = (a: any, b: any): boolean => {
 
 export const makeUseSharedReducer = (space: Space) => {
   return (incrIdx: () => number, componentId: any /* Symbol */) => {
-    const useSharedReducer = <S, A, MS>(
+    return function useSharedReducer<S, A, MS>(
       reducer: Reducer<S, A>,
       { initState, mapState }: ReducerConfig<S, MS>
-    ): [S, MS, Dispatch<A>] => {
+    ): [S, MS, Dispatch<A>] {
       const idx = incrIdx();
       const initialState = space.reducers[idx] == null ? initState() : space.reducers[idx].state;
 
@@ -81,7 +81,5 @@ export const makeUseSharedReducer = (space: Space) => {
 
       return [space.reducers[idx].state, mappedState, space.reducers[idx].dispatch];
     };
-
-    return useSharedReducer;
   };
 };
