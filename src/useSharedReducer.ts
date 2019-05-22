@@ -17,69 +17,71 @@ const shallowEqual = (a: any, b: any): boolean => {
   return Object.is(a, b);
 };
 
-export const makeUseSharedReducer = (space: Space) => {
-  return (incrIdx: () => number, componentId: any /* Symbol */) => {
-    return function useSharedReducer<S, A, MS>(
-      reducer: Reducer<S, A>,
-      { initState, mapState }: ReducerConfig<S, MS>
-    ): [S, MS, Dispatch<A>] {
-      const idx = incrIdx();
-      const initialState = space.reducers[idx] == null ? initState() : space.reducers[idx].state;
+export const makeUseSharedReducer = (
+  space: Space,
+  incrIdx: () => number,
+  componentId: any /* Symbol */
+) => {
+  return function useSharedReducer<S, A, MS>(
+    reducer: Reducer<S, A>,
+    { initState, mapState }: ReducerConfig<S, MS>
+  ): [S, MS, Dispatch<A>] {
+    const idx = incrIdx();
+    const initialState = space.reducers[idx] == null ? initState() : space.reducers[idx].state;
 
-      const initialMappedState = useRef<MS | typeof UNINITIALIZED>(UNINITIALIZED);
-      if (initialMappedState.current === UNINITIALIZED) {
-        initialMappedState.current = mapState(initialState);
-      }
+    const initialMappedState = useRef<MS | typeof UNINITIALIZED>(UNINITIALIZED);
+    if (initialMappedState.current === UNINITIALIZED) {
+      initialMappedState.current = mapState(initialState);
+    }
 
-      const [mappedState, setMappedState] = useState(initialMappedState.current as MS);
+    const [mappedState, setMappedState] = useState(initialMappedState.current as MS);
 
-      if (space.reducers[idx] == null) {
-        const dispatch = (action: A) => {
-          const nextState = reducer(space.reducers[idx].state, action);
-          space.reducers[idx].state = nextState;
-          Object.getOwnPropertySymbols(space.reducers[idx].listeners).forEach(componentId => {
-            const l = space.reducers[idx].listeners[componentId as any];
-            const nextMappedState = l.mapState(nextState);
-            if (!shallowEqual(l.mappedState, nextMappedState)) {
-              l.mappedState = nextMappedState;
-              l.setMappedState(nextMappedState);
-            }
-          });
-        };
-        space.reducers[idx] = {
-          dispatch,
-          state: initialState,
-          listeners: {
-            [componentId]: {
-              mapState,
-              setMappedState,
-              mappedState: initialMappedState.current,
-            },
-          },
-        };
-      } else {
-        const { listeners } = space.reducers[idx];
-        if (listeners[componentId] == null) {
-          listeners[componentId] = {
+    if (space.reducers[idx] == null) {
+      const dispatch = (action: A) => {
+        const nextState = reducer(space.reducers[idx].state, action);
+        space.reducers[idx].state = nextState;
+        Object.getOwnPropertySymbols(space.reducers[idx].listeners).forEach(componentId => {
+          const l = space.reducers[idx].listeners[componentId as any];
+          const nextMappedState = l.mapState(nextState);
+          if (!shallowEqual(l.mappedState, nextMappedState)) {
+            l.mappedState = nextMappedState;
+            l.setMappedState(nextMappedState);
+          }
+        });
+      };
+      space.reducers[idx] = {
+        dispatch,
+        state: initialState,
+        listeners: {
+          [componentId]: {
             mapState,
             setMappedState,
             mappedState: initialMappedState.current,
-          };
-        } else {
-          listeners[componentId].mapState = mapState;
-          listeners[componentId].setMappedState = setMappedState;
-        }
-      }
-
-      useEffect(() => {
-        return () => {
-          delete space.reducers[idx].listeners[componentId];
-          // TODO: Clean up.
-          // Probably we don't need to hold listeners for each reducer.
+          },
+        },
+      };
+    } else {
+      const { listeners } = space.reducers[idx];
+      if (listeners[componentId] == null) {
+        listeners[componentId] = {
+          mapState,
+          setMappedState,
+          mappedState: initialMappedState.current,
         };
-      }, []);
+      } else {
+        listeners[componentId].mapState = mapState;
+        listeners[componentId].setMappedState = setMappedState;
+      }
+    }
 
-      return [space.reducers[idx].state, mappedState, space.reducers[idx].dispatch];
-    };
+    useEffect(() => {
+      return () => {
+        delete space.reducers[idx].listeners[componentId];
+        // TODO: Clean up.
+        // Probably we don't need to hold listeners for each reducer.
+      };
+    }, []);
+
+    return [space.reducers[idx].state, mappedState, space.reducers[idx].dispatch];
   };
 };

@@ -1,12 +1,7 @@
 import React, { createContext } from 'react';
-import { SpaceMap, SharedAPI } from './types';
-import { makeUseShared } from './useShared';
+import { SpaceMap } from './types';
 
-export type SharedAPIProvider = {
-  readonly useShared: (spaceId: Symbol, componentName?: string) => SharedAPI;
-};
-
-export const SharedContext = createContext<SharedAPIProvider | null>(null);
+export const SharedContext = createContext<SpaceMap | null>(null);
 
 export const SharedProvider = ({ children }: { children: any }) => {
   const sharedSpace: SpaceMap = new Map();
@@ -14,6 +9,5 @@ export const SharedProvider = ({ children }: { children: any }) => {
   // TODO: Remove this debug code.
   (window as any)._shared = sharedSpace;
 
-  const useShared = makeUseShared(sharedSpace);
-  return <SharedContext.Provider value={{ useShared }}>{children}</SharedContext.Provider>;
+  return <SharedContext.Provider value={sharedSpace}>{children}</SharedContext.Provider>;
 };
