@@ -216,13 +216,15 @@ const useFriendStatus = (friendID) => {
 ```
 
 Multiple component can share multiple effects.
-Consider `useFriendStatus` example in React Hook reference.
+Consider [`useFriendStatus` example][official-custom-hook-example] in React Hook reference.
 If multiple components use this `useFriendStatus`, it should be like below:
 
 - Each component can subscribe a different friend status simultaniously.
 - There is always one subscription for a same friend. No duplicate API calls.
-- A subscription is cancelled when all subscribing components are unmounted.
+- A subscription for a friend is cancelled when all components are unmounted who subscribe the friend's status.
 
 `useEffectPer` achieves this. You can run different effect per component by providing a key (`friendID`). 
 
 - **Pitfall**: Currently you cannot pass dependencies to this hook.
+
+[official-custom-hook-example]: https://reactjs.org/docs/hooks-custom.html
