@@ -208,7 +208,9 @@ const useFriendStatus = (friendID) => {
   shared.useEffectPer(friendID, () => {
     const handleChange = status => dispatch({ friendID, ...status });
     ChatAPI.subscribeFriendStatus(friendID, handleChange);
-    return ChatAPI.unsubscribeFriendStatus(friendID, handleChange);
+    return () => {
+      ChatAPI.unsubscribeFriendStatus(friendID, handleChange)
+    };
   });
 
   return isOnline;
